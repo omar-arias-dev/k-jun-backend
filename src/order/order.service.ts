@@ -1,0 +1,179 @@
+import { BadRequestException, Injectable, InternalServerErrorException, NotAcceptableException, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Order } from './order.schema';
+import { Model } from 'mongoose';
+import { Query as ExpressQuery } from "express-serve-static-core";
+import { CreateOrderDTO } from './dto/create-order.dto';
+import { Product } from 'src/product/product.schema';
+import { OrderHistoryDTO } from './dto/order-history.dto';
+import { AddItemsOrderDTO } from './dto/add-items-order.dto';
+import { UpdateOrderStatusDTO } from './dto/update-order-status.dto';
+import { UpdateOrderPaymentMethodDTO } from './dto/update-order-payment-method.dto';
+import { UpdateOrderTypeDTO } from './dto/update-order-type.dto';
+
+@Injectable()
+export class OrderService {
+  constructor(
+    @InjectModel(Order.name) private orderModel: Model<Order>,
+    @InjectModel(Product.name) private productModel: Model<Product>,
+  ) {}
+
+  async getAllPopulatedPaginatedOrdersWithQuery(query: ExpressQuery) {
+    try {
+      const limit = Number(query?.limit) || 25;
+      const page = Number(query?.page) || 1;
+      const skip = limit * (page - 1);
+      
+      const keyword = query?.keyword ?
+        {
+          type: {
+            $regex: query?.keyword,
+            $options: "i",
+          },
+          status: {
+            $regex: query?.keyword,
+            $options: "i",
+          },
+        }
+        :
+        {};
+      const orders = await this.orderModel.find({ ...keyword })
+        .limit(limit)
+        .skip(skip)
+        .lean()
+        .populate("address")
+        .populate("items.product")
+        .exec();
+      const totalDocuments = await this.orderModel.countDocuments().exec();
+      return {total_documents: totalDocuments ?? 0, orders: orders ?? []} ?? {};
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getOrderById(id: string) {
+    try {
+      const order = await this.orderModel.findById(id)
+        .lean()
+        .populate("address")
+        .populate("items.product")
+        .exec();
+      if (!order) return new NotFoundException("Order Not found.");
+      return order;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async createOrder(orderDto: CreateOrderDTO) {
+    try {
+      const productsIdsList = orderDto.items.map(item => item.product.toString());
+      const productList = await this.productModel.find({ _id: { $in: productsIdsList } }).exec();
+      const total = productList
+        .map((product) => orderDto.items.find((item) => product._id.toString() === item.product._id.toString()).quantity * product.price)
+        .reduce((total, current) => total + current, 0);
+      if (total !== orderDto.total) return new NotAcceptableException("Order's total and total by products price don't match. Verify prices.");
+      const orderProductsHistory = orderDto.items.map(item => {
+        const quantity = item.quantity;
+        const productName = productList.find((product) => product._id.toString() === item.product.toString()).name ?? "";
+        return `Product: ${productName}, Quantity: ${quantity}`;
+      }).join(" - ");
+      const history: OrderHistoryDTO = {
+        note: `Order created. ${orderProductsHistory}.`,
+      }
+      const order = new this.orderModel({...orderDto, history: history });
+      const savedOrder = await order.save();
+      if (!savedOrder) return new BadRequestException("Orden cannot be saved.");
+      return savedOrder;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+
+  async updateOrderItems(
+    id: string,
+    items: AddItemsOrderDTO,
+  ) {
+    try {
+      const order = await this.orderModel.findById(id).exec();
+      if (!order) return new NotFoundException("Order Not found.");
+      const itemsProductsIdsList = items.items.map(item => item.product.toString());
+      const itemsProductList = await this.productModel.find({ _id: { $in: itemsProductsIdsList } }).exec();
+      const total = itemsProductList
+          .map((product) => items.items.find((item) => product._id.toString() === item.product._id.toString()).quantity * product.price)
+          .reduce((total, current) => total + current, 0);
+      if (total !== items.order_total) return new NotAcceptableException("Order's total and total by products price don't match. Verify prices.");
+      const orderProductsHistory = items.items.map(item => {
+        const quantity = item.quantity;
+        const productName = itemsProductList.find((product) => product._id.toString() === item.product.toString()).name ?? "";
+        return `Product: ${productName}, Quantity: ${quantity}`;
+      }).join(" - ");
+      const history: OrderHistoryDTO = {
+        note: `Order items updated. ${orderProductsHistory}.`,
+      };
+      order.items = [...items.items];
+      order.total = total;
+      order.history.push(history);
+      const orderUpdated = await order.save();
+      if (!orderUpdated) return new InternalServerErrorException("Error updating order.");
+      return orderUpdated;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async updateOrderStatus(id: string, status: UpdateOrderStatusDTO) {
+    try {
+      const order = await this.orderModel.findById(id).exec();
+      if (!order) return new NotFoundException("Order Not found.");
+      const history: OrderHistoryDTO[] = [...order.history];
+      history.push({
+        note: `Order was updated with status ${status.status}.`,
+      });
+      order.history = history;
+      order.status = status.status;
+      const savedOrder = await order.save();
+      if (!savedOrder) return new InternalServerErrorException("Order Was not be saved.");
+      return savedOrder;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async updateOrderPaymentMethod(id: string, paymentMethod: UpdateOrderPaymentMethodDTO) {
+    try {
+      const order = await this.orderModel.findById(id).exec();
+      if (!order) return new NotFoundException("Order Not found.");
+      const history: OrderHistoryDTO[] = [...order.history];
+      history.push({
+        note: `Order payment method was updated. ${paymentMethod.payment_method}.`,
+      });
+      order.history = history;
+      order.payment_method = paymentMethod.payment_method;
+      const savedOrder = await order.save();
+      if (!savedOrder) return new InternalServerErrorException("Order Was not be saved.");
+      return savedOrder;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+  
+  async updateOrderType(id: string, type: UpdateOrderTypeDTO) {
+    try {
+      const order = await this.orderModel.findById(id).exec();
+      if (!order) return new NotFoundException("Order Not found.");
+      const history: OrderHistoryDTO[] = [...order.history];
+      history.push({
+        note: `Order type was updated. ${type.type}.`,
+      });
+      order.history = history;
+      order.type = type.type;
+      const savedOrder = await order.save();
+      if (!savedOrder) return new InternalServerErrorException("Order Was not be saved.");
+      return savedOrder;
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+}
