@@ -56,7 +56,7 @@ export class Order {
 
   @Prop({
     type: CustomAddressSchema,
-    required: function() { return (!this.customer || !this.address) ? true : false  },
+    required: function() { return ((!this.customer || !this.address) && (this.type === Type.TAKE_OUT)) ? true : false  },
   })
   custom_address?: CustomAddress;
 
