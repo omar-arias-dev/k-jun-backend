@@ -6,6 +6,8 @@ import { OrderModule } from './order/order.module';
 import { CustomerModule } from './customer/customer.module';
 import { AddressModule } from './address/address.module';
 import { EnumModule } from './enum/enum.module';
+import { TableModule } from './table/table.module';
+import { TableHistoryModule } from './table-history/table-history.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -25,6 +27,8 @@ import configuration from './config/configuration';
     CustomerModule,
     AddressModule,
     EnumModule,
+    TableModule,
+    TableHistoryModule,
   ],
   controllers: [],
   providers: [],
