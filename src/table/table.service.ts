@@ -32,6 +32,20 @@ export class TableService {
       .exec();
   }
 
+  async getTableById(id: string) {
+    const table = this.tableModel.findById(id)
+      .lean()
+      .populate({
+        path: "current_order",
+        populate: {
+          path: "items.product",
+          model: 'Product',
+        }
+      });
+    if (!table) return new NotFoundException("Table not Found.");
+    return table;
+  }
+
   async suspendTable(id: string) {
     const suspendedTable = this.tableModel.findByIdAndUpdate(id, { status: false }, { new: true });
     if (!suspendedTable) return new NotFoundException("Table not Found.");

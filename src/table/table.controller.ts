@@ -17,6 +17,11 @@ export class TableController {
     return this.tableService.getAllTables();
   }
 
+  @Get(":id")
+  getTable(@Param("id") id: string) {
+    return this.tableService.getTableById(id);
+  }
+
   @Post()
   createTable(
     @Body() createTableDto: CreateTableDTO
