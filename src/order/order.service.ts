@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, InternalServerErrorException, NotAcceptableException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 import { Order } from './order.schema';
 import { Model } from 'mongoose';
 import { Query as ExpressQuery } from "express-serve-static-core";
@@ -10,13 +11,20 @@ import { AddItemsOrderDTO } from './dto/add-items-order.dto';
 import { UpdateOrderStatusDTO } from './dto/update-order-status.dto';
 import { UpdateOrderPaymentMethodDTO } from './dto/update-order-payment-method.dto';
 import { UpdateOrderTypeDTO } from './dto/update-order-type.dto';
+import { CounterService } from 'src/counter/counter.service';
 
 @Injectable()
 export class OrderService {
+  readonly ACRONYM: string;
+
   constructor(
     @InjectModel(Order.name) private orderModel: Model<Order>,
     @InjectModel(Product.name) private productModel: Model<Product>,
-  ) {}
+    private configService: ConfigService,
+    private counterService: CounterService,
+  ) {
+    this.ACRONYM = this.configService.get("acronym") ?? null;
+  }
 
   async getAllPopulatedPaginatedOrdersWithQuery(query: ExpressQuery) {
     try {
@@ -78,10 +86,17 @@ export class OrderService {
         const productName = productList.find((product) => product._id.toString() === item.product.toString()).name ?? "";
         return `Product: ${productName}, Quantity: ${quantity}`;
       }).join(" - ");
+      const seq = await this.counterService.getNextSequenceValue("orders");
+      if (!seq) return new InternalServerErrorException("Error at retrive sequence.");
+      const orderNumber = `${this.ACRONYM}${seq.toString().padStart(5, '0')}`;
       const history: OrderHistoryDTO = {
         note: `Order created. ${orderProductsHistory}.`,
       }
-      const order = new this.orderModel({...orderDto, history: history });
+      const order = new this.orderModel({
+        ...orderDto,
+        order_number: orderNumber,
+        history: history,
+      });
       const savedOrder = await order.save();
       if (!savedOrder) return new BadRequestException("Orden cannot be saved.");
       return savedOrder;

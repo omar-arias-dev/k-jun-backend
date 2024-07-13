@@ -8,5 +8,6 @@ export default () => ({
   },
   swagger: {
     path: process.env.SWAGGER_PATH,
-  }
+  },
+  acronym: process.env.ACRONYM,
 });

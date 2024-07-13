@@ -10,6 +10,12 @@ import { OrderHistory, OrderHistorySchema } from "./schema/order-history.schema"
 })
 export class Order {
   @Prop({
+    type: String,
+    required: true,
+  })
+  order_number: string;
+
+  @Prop({
     type: [ItemSchema],
     required: true,
   })
