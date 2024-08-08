@@ -6,6 +6,8 @@ export enum Type {
 export enum Status {
   PENDING = "PENDING",
   PREPARING = "PREPARING",
+  SERVED = "SERVED",
+  PAID = "PAID",
   DELIVERING = "DELIVERING",
   DELIVERED = "DELIVERED",
   CANCELED = "CANCELED",

@@ -56,7 +56,7 @@ export class Order {
   @Prop({
     type: mongoose.Types.ObjectId,
     ref: "Address",
-    required: function() { return this.customer ? true : false },
+    required: function() { return (this.customer && (this.type === Type.TAKE_OUT)) ? true : false },
   })
   address?: mongoose.Types.ObjectId;
 

@@ -52,4 +52,11 @@ export class TableController {
   ) {
     return this.tableService.suspendTable(id);
   }
+
+  @Put("cancel-order-table/:table_id")
+  cancelOrderAndUpdateTableToAvailable(
+    @Param("table_id") id: string,
+  ) {
+    return this.tableService.cancelOrderAndUpdateTableToAvailable(id);
+  }
 }
