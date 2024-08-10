@@ -12,6 +12,7 @@ import { UpdateOrderStatusDTO } from './dto/update-order-status.dto';
 import { UpdateOrderPaymentMethodDTO } from './dto/update-order-payment-method.dto';
 import { UpdateOrderTypeDTO } from './dto/update-order-type.dto';
 import { CounterService } from 'src/counter/counter.service';
+import { OrderHistory } from './schema/order-history.schema';
 
 @Injectable()
 export class OrderService {
@@ -20,6 +21,7 @@ export class OrderService {
   constructor(
     @InjectModel(Order.name) private orderModel: Model<Order>,
     @InjectModel(Product.name) private productModel: Model<Product>,
+    @InjectModel(OrderHistory.name) private orderHistoryModel: Model<OrderHistory>,
     private configService: ConfigService,
     private counterService: CounterService,
   ) {
@@ -190,5 +192,17 @@ export class OrderService {
     } catch (error) {
       throw new Error(error);
     }
+  }
+
+  async updateOrderHistory(id: string, histories: OrderHistoryDTO[]) {
+    const order = await this.orderModel.findById(id).exec();
+    if (!order) return new NotFoundException("Order Not found.");
+    const history: OrderHistory[] = [...order.history] || [];
+    const newEntries = histories.map(dto => new this.orderHistoryModel(dto));
+    const allEntries = [...history, ...newEntries];
+    order.set("history", allEntries);
+    const updatedOrder = await order.save();
+    if (!updatedOrder) return new InternalServerErrorException("Order Couldn't be updated.");
+    return updatedOrder;
   }
 }

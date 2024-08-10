@@ -8,6 +8,7 @@ import { Address, AddressSchema } from 'src/address/address.schema';
 import { Product, ProductSchema } from 'src/product/product.schema';
 import { Counter, CounterSchema } from 'src/counter/couter.schema';
 import { CounterService } from 'src/counter/counter.service';
+import { OrderHistory, OrderHistorySchema } from './schema/order-history.schema';
 
 @Module({
   imports: [
@@ -31,7 +32,11 @@ import { CounterService } from 'src/counter/counter.service';
       {
         name: Counter.name,
         schema: CounterSchema,
-      }
+      },
+      {
+        name: OrderHistory.name,
+        schema: OrderHistorySchema,
+      },
     ]),
   ],
   controllers: [OrderController],

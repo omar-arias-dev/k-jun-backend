@@ -8,6 +8,7 @@ import { AddItemsOrderDTO } from './dto/add-items-order.dto';
 import { UpdateOrderStatusDTO } from './dto/update-order-status.dto';
 import { UpdateOrderPaymentMethodDTO } from './dto/update-order-payment-method.dto';
 import { UpdateOrderTypeDTO } from './dto/update-order-type.dto';
+import { OrderHistoryDTO } from './dto/order-history.dto';
 
 @Controller('order')
 @ApiTags("Orders")
@@ -75,5 +76,13 @@ export class OrderController {
     @Body() type: UpdateOrderTypeDTO,
   ) {
     return this.orderService.updateOrderType(id, type);
+  }
+
+  @Put("update-history/:id")
+  updateOrderHistory(
+    @Param("id") id: string,
+    @Body() histories: OrderHistoryDTO[],
+  ) {
+    return this.orderService.updateOrderHistory(id, histories);
   }
 }
