@@ -4,6 +4,7 @@ import { TableService } from './table.service';
 import { CreateTableDTO } from './dto/create-table.dto';
 import { UpdateTableToTakenDTO } from './dto/update-table-to-taken.dto';
 import { UpdateTableToAvailableDTO } from './dto/update-table-to-available.dto';
+import { UpdateTableDTO } from './dto/update-table.dto';
 
 @Controller('table')
 @ApiTags("Tables")
@@ -27,6 +28,14 @@ export class TableController {
     @Body() createTableDto: CreateTableDTO
   ) {
     return this.tableService.createTable(createTableDto);
+  }
+
+  @Put(":id")
+  updateTableById(
+    @Param("id") id: string,
+    @Body() body: UpdateTableDTO,
+  ) {
+    return this.tableService.updateTableById(id, body);
   }
 
   @Put("to-taken/:id")

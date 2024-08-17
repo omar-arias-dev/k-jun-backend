@@ -10,6 +10,7 @@ import { Type, Status } from 'src/enum/order-enum';
 import { TableStatus } from 'src/enum/table-enum';
 import { TableHistory } from 'src/table-history/table-history.schema';
 import { OrderHistoryDTO } from 'src/order/dto/order-history.dto';
+import { UpdateTableDTO } from './dto/update-table.dto';
 
 @Injectable()
 export class TableService {
@@ -44,6 +45,20 @@ export class TableService {
         }
       });
     if (!table) return new NotFoundException("Table not Found.");
+    return table;
+  }
+
+  async updateTableById(id: string, updateTableDTO: UpdateTableDTO) {
+    const table = await this.tableModel.findByIdAndUpdate(
+      id,
+      {
+        table_number: updateTableDTO.table_number,
+        capacity: updateTableDTO.capacity,
+        notes: updateTableDTO.notes,
+      },
+      { new: true },
+    );
+    if (!table) return new NotFoundException("Table not Found."); 
     return table;
   }
 
