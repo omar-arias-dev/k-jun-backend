@@ -36,14 +36,18 @@ export class OrderService {
       
       const keyword = query?.keyword ?
         {
-          type: {
+          order_number: {
+            $regex: query?.keyword,
+            $options: "i",
+          },
+          /* type: {
             $regex: query?.keyword,
             $options: "i",
           },
           status: {
             $regex: query?.keyword,
             $options: "i",
-          },
+          }, */
         }
         :
         {};
