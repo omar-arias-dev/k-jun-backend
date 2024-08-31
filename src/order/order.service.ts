@@ -54,6 +54,7 @@ export class OrderService {
       const orders = await this.orderModel.find({ ...keyword })
         .limit(limit)
         .skip(skip)
+        .sort({ createdAt: -1 })
         .lean()
         .populate("address")
         .populate("items.product")
