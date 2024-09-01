@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { OrderService } from './order.service';
 import { Query as ExpressQuery } from "express-serve-static-core";
@@ -9,6 +9,7 @@ import { UpdateOrderStatusDTO } from './dto/update-order-status.dto';
 import { UpdateOrderPaymentMethodDTO } from './dto/update-order-payment-method.dto';
 import { UpdateOrderTypeDTO } from './dto/update-order-type.dto';
 import { OrderHistoryDTO } from './dto/order-history.dto';
+import { Type } from 'src/enum/order-enum';
 
 @Controller('order')
 @ApiTags("Orders")
@@ -29,6 +30,14 @@ export class OrderController {
   @Get(":id")
   getOrderById(@Param("id") id: string) {
     return this.orderService.getOrderById(id);
+  }
+
+  @Get("/orders/type")
+  @ApiQuery({ name: "type", enum: Type })
+  getOrdersByType(
+    @Query("type") type: Type = Type.DINE_HERE,
+  ) {
+    return this.orderService.getOrdersByType(type);
   }
 
   @Post()

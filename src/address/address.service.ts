@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Address } from './address.schema';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateAddressDTO } from './dto/create-address.dto';
 import { UpdateAddressDTO } from './dto/update-address.dto';
 
@@ -21,7 +21,11 @@ export class AddressService {
   }
 
   createAddress(addressDto: CreateAddressDTO) {
-    const createdAddress = new this.addressModel(addressDto);
+    const newAddress: CreateAddressDTO = {
+      ...addressDto,
+      customer: new Types.ObjectId(addressDto.customer),
+    }
+    const createdAddress = new this.addressModel(newAddress);
     return createdAddress.save();
   }
 
@@ -32,10 +36,18 @@ export class AddressService {
   }
 
   async updateAddressById(id: string, address: UpdateAddressDTO) {
-    const addressUpdated = await this.addressModel.findByIdAndUpdate(id, address, { new: true });
+    const addressUpdated = await this.addressModel.findByIdAndUpdate(id, { ...address, apartment_number: address.apartment_number ?? null }, { new: true });
     if (!addressUpdated) {
       throw new NotFoundException(`Address with id ${id} not found.`);
     }
     return addressUpdated;
+  }
+
+  async getAllCustomerAddresses(customerId: string) {
+    const addresses = await this.addressModel.find({ customer: new Types.ObjectId(customerId) });
+    if (!addresses) {
+      throw new NotFoundException(`Addresses not found.`);
+    }
+    return addresses;
   }
 }

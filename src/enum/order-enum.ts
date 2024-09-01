@@ -1,6 +1,7 @@
 export enum Type {
   DINE_HERE = "DINE_HERE",
   TAKE_OUT = "TAKE_OUT",
+  DELIVERY = "DELIVERY",
 }
 
 export enum Status {

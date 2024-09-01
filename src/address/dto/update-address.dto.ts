@@ -15,6 +15,14 @@ export class UpdateAddressDTO {
   street: string;
 
   @IsString()
+  @IsOptional()
+  street_number: string;
+
+  @IsString()
+  @IsOptional()
+  apartment_number: string;
+
+  @IsString()
   @IsNotEmpty()
   city: string;
 

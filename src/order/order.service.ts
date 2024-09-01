@@ -13,7 +13,6 @@ import { UpdateOrderPaymentMethodDTO } from './dto/update-order-payment-method.d
 import { UpdateOrderTypeDTO } from './dto/update-order-type.dto';
 import { CounterService } from 'src/counter/counter.service';
 import { OrderHistory } from './schema/order-history.schema';
-
 @Injectable()
 export class OrderService {
   readonly ACRONYM: string;
@@ -76,6 +75,22 @@ export class OrderService {
       if (!order) return new NotFoundException("Order Not found.");
       return order;
     } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  async getOrdersByType(type: string) {
+    try {
+      const orders = await this.orderModel.find({ type })
+        .lean()
+        .sort({ createdAt: -1 })
+        .populate("address")
+        .populate("items.product")
+        .exec();
+      if (!orders) return new NotFoundException("Orders Not found.");
+      return orders;  
+    } catch (error) {
+      console.error(error);
       throw new Error(error);
     }
   }

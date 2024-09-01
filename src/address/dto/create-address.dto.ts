@@ -15,6 +15,14 @@ export class CreateAddressDTO {
   street: string;
 
   @IsString()
+  @IsOptional()
+  street_number: string;
+
+  @IsString()
+  @IsOptional()
+  apartment_number: string;
+
+  @IsString()
   @IsNotEmpty()
   city: string;
 

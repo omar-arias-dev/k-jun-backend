@@ -31,4 +31,11 @@ export class AddressController {
   ) {
     return this.addressService.updateAddressById(id, body);
   }
+
+  @Get("/customer/:customerId")
+  getAllCustomerAddresses(
+    @Param("customerId") customerId: string,
+  ) {
+    return this.addressService.getAllCustomerAddresses(customerId);
+  }
 }

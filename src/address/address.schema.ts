@@ -13,6 +13,15 @@ export class Address {
   @Prop({
     required: true,
   })
+  street_number: string;
+
+  @Prop({
+  })
+  apartment_number: string;
+
+  @Prop({
+    required: true,
+  })
   city: string;
 
   @Prop({
