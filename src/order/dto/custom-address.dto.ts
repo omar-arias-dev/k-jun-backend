@@ -4,6 +4,7 @@ import {
   IsNumberString,
   Length,
   IsPhoneNumber,
+  IsOptional,
 } from 'class-validator';
 
 export class CustomAddressDTO {
@@ -14,6 +15,14 @@ export class CustomAddressDTO {
   @IsPhoneNumber()
   @IsNotEmpty()
   phone: string;
+
+  @IsString()
+  @IsNotEmpty()
+  street_number: string;
+
+  @IsString()
+  @IsOptional()
+  apartment_number: string;
 
   @IsString()
   @IsNotEmpty()

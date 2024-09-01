@@ -17,6 +17,15 @@ export class CustomAddress {
   @Prop({
     required: true,
   })
+  street_number: string;
+
+  @Prop({
+  })
+  apartment_number?: string;
+
+  @Prop({
+    required: true,
+  })
   street: string;
   
   @Prop({
